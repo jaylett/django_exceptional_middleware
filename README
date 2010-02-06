@@ -1,0 +1,31 @@
+= django_custom_rare_http_responses =
+
+Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than 200, 401 and 404; in particular, a ``get_object_or_403`` function which allows you to mask the
+absence of entities so you have consistent response codes with private entities (so you aren't leaking
+information by saying "charlie doesn't exist" and "you can't access anna").
+
+I wrote this at a <http://devfort.com/>, based on an initial implementation by Richard Boulton.
+
+== Basic use ==
+
+Add ``django_custom_rare_http_responses.middleware.CustomRareHttpResponses`` to ``MIDDLEWARE_CLASSES``, and ``django_custom_rare_http_responses`` to ``INSTALLED_APPS``. Make sure you have ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``, and you can then raise the exceptions in ``django_custom_rare_http_responses.responses`` to get a (basic) error page.
+
+To override the default template, put (eg) ``http_responses/403.html`` in a ``TEMPLATE_DIRS`` directory (assuming ``django.template.loaders.filesystem.load_template_source`` comes before ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``).
+
+== Fallback templates and template context variables ==
+
+If you don't want to write a different template for each response code, you can make a ``default.html`` template, which is how the automatic templating supplied by the app itself works. Templates are invoked with three context variables:
+
+	http_code		The HTTP response code
+	http_message		An (English) description of the response code; if you use this in your templates, you probably want to use it as a translation string
+	http_response_exception	The exception that caused this, allowing you to pass further information through
+
+== Overriding render mechanism ==
+
+By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``django_custom_rare_http_responses.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
+
+== HTTP 404 ==
+
+The middleware catches Django's Http404 and turns it into one of its own, so you can use the same render code and template layout instead of having to write a ``handler404``.
+
+James Aylett <http://tartarus.org/james/computers/django/>
