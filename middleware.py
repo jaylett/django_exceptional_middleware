@@ -13,6 +13,9 @@ def set_renderer(renderer):
 
 class CustomRareHttpResponses:
     def process_exception(self, request, exception):
+        if settings.DEBUG: # don't do any smart processing
+            return None
+
         if isinstance(exception, Http404):
             exception = HttpNotFound(Http404)
         if isinstance(exception, RareHttpResponse):

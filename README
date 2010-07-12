@@ -45,6 +45,3 @@ James Aylett <http://tartarus.org/james/computers/django/>
 == Things to do ==
 
 Catch runtime exceptions and turn them into 500 done in our style.
-
-Honour DEBUG=True.
-
