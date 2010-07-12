@@ -50,5 +50,6 @@ class CustomRareHttpResponses:
             except TemplateDoesNotExist:
                 response = do_render('default')
             response.status_code = exception.http_code
+            exception.augment_response(response)
             return response
         return None

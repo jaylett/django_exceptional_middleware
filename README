@@ -28,4 +28,23 @@ By default, rendering happens using a vanilla invocation of ``render_to_response
 
 The middleware catches Django's Http404 and turns it into one of its own, so you can use the same render code and template layout instead of having to write a ``handler404``.
 
+== Augment response ==
+
+Sometimes you may want to do something else to the response at the end of the cycle on a per-exception basis. To do this, override the ``augment_response()`` method on your exception before raising it. It takes the ``response`` object:
+
+{{{
+from django_custom_rare_http_responses.responses import HttpConflict
+class MyConflict(HttpConflict):
+	def augment_response(self, response):
+		response.delete_cookie('mycookie')
+}}}
+
+
 James Aylett <http://tartarus.org/james/computers/django/>
+
+== Things to do ==
+
+Catch runtime exceptions and turn them into 500 done in our style.
+
+Honour DEBUG=True.
+
