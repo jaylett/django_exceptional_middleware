@@ -23,6 +23,9 @@ class Http409(RareHttpResponse):
 class Http410(RareHttpResponse):
     http_code = 410
 
+class Http500(RareHttpResponse):
+    http_code = 500
+
 class Http501(RareHttpResponse):
     http_code = 501
 
@@ -31,4 +34,5 @@ HttpForbidden = Http403
 HttpNotFound = Http404
 HttpConflict = Http409
 HttpGone = Http410
+HttpServerError = Http500
 HttpNotImplemented = Http501
