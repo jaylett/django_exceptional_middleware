@@ -12,7 +12,7 @@ def set_renderer(renderer):
     global custom_renderer
     custom_renderer = renderer
 
-class CustomRareHttpResponses:
+class ExceptionalMiddleware:
     def render(self, request, template_name, context):
         if custom_renderer==None:
             return render_to_response(
@@ -31,7 +31,7 @@ class CustomRareHttpResponses:
             # don't do any smart processing; 404 & 500 will get normal Django processing, everything else becomes a stacktrace
             return None
 
-        if hasattr(settings, 'EXCEPTIONAL_INVASION') and setings.EXCEPTIONAL_INVASION=True:
+        if hasattr(settings, 'EXCEPTIONAL_INVASION') and settings.EXCEPTIONAL_INVASION==True:
             if isinstance(exception, Http404):
                 exception = HttpNotFound(exception)
             if not isinstance(exception, RareHttpResponse):

@@ -1,4 +1,4 @@
-= django_custom_rare_http_responses =
+= Django Exceptional Middleware =
 
 Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than Django supports, and making it easy to style them all the same way.
 
@@ -6,7 +6,7 @@ This was originally written at a <http://devfort.com/>, based on an initial impl
 
 == Basic use ==
 
-Add ``django_custom_rare_http_responses.middleware.CustomRareHttpResponses`` to ``MIDDLEWARE_CLASSES``, and ``django_custom_rare_http_responses`` to ``INSTALLED_APPS``. Make sure you have ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``, and you can then raise the exceptions in ``django_custom_rare_http_responses.responses`` to get a (basic) error page.
+Add ``exceptional_middleware.middleware.ExceptionalMiddleware`` to ``MIDDLEWARE_CLASSES``, and ``exceptional_middleware`` to ``INSTALLED_APPS``. Make sure you have ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``, and you can then raise the exceptions in ``exceptional_middleware.responses`` to get a (basic) error page.
 
 To override the default template, put (eg) ``http_responses/403.html`` in a ``TEMPLATE_DIRS`` directory (assuming ``django.template.loaders.filesystem.load_template_source`` comes before ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``).
 
@@ -20,7 +20,7 @@ If you don't want to write a different template for each response code, you can 
 
 == Overriding render mechanism ==
 
-By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``django_custom_rare_http_responses.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
+By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``exceptional_middleware.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
 
 == Other features ==
 
@@ -43,7 +43,7 @@ Each exception has a ``headers`` member, which is a dictionary of HTTP header na
 Sometimes you may want to do something else to the response at the end of the cycle on a per-exception basis. To do this, override the ``augment_response()`` method on your exception before raising it. It takes the ``response`` object:
 
 {{{
-from django_custom_rare_http_responses.responses import HttpConflict
+from exceptional_middleware.responses import HttpConflict
 class MyConflict(HttpConflict):
 	def augment_response(self, response):
 		response.delete_cookie('mycookie')
