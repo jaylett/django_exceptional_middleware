@@ -1,10 +1,8 @@
 = django_custom_rare_http_responses =
 
-Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than 200, 401 and 404; in particular, a ``get_object_or_403`` function which allows you to mask the
-absence of entities so you have consistent response codes with private entities (so you aren't leaking
-information by saying "charlie doesn't exist" and "you can't access anna").
+Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than Django supports, and making it easy to style them all the same way.
 
-I wrote this at a <http://devfort.com/>, based on an initial implementation by Richard Boulton.
+This was originally written at a <http://devfort.com/>, based on an initial implementation by Richard Boulton, and subsequently developed at other devforts..
 
 == Basic use ==
 
@@ -24,15 +22,23 @@ If you don't want to write a different template for each response code, you can 
 
 By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``django_custom_rare_http_responses.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
 
-== HTTP 404 & 500 ==
+== Other features ==
 
-The middleware catches Django's Http404 and turns it into one of its own (HttpNotFound), so you can use the same render code and template layout instead of having to write a ``handler404``. Similarly, runtime errors are turned into HttpServerError, so you don't have to write ``handler500``.
+=== HTTP 404 & 500 ===
 
-== DEBUG = True ==
+The middleware can catch Django's Http404 and turn it into one of its own (HttpNotFound), so you can use the same render code and template layout instead of having to write a ``handler404``. To enable this, set ``EXCEPTIONAL_INVASION=True`` in ``settings.py``.
 
-None processing happens in the middleware if settings.DEBUG = True.
+Similarly, runtime errors will be turned into HttpServerError, so you don't have to write ``handler500``.
 
-== Augment response ==
+=== DEBUG = True ===
+
+No processing happens in the middleware if settings.DEBUG = True.
+
+=== Extra HTTP headers ===
+
+Each exception has a ``headers`` member, which is a dictionary of HTTP header names to values, which will be added into the final HTTP response.
+
+=== Augment response ===
 
 Sometimes you may want to do something else to the response at the end of the cycle on a per-exception basis. To do this, override the ``augment_response()`` method on your exception before raising it. It takes the ``response`` object:
 
@@ -42,6 +48,10 @@ class MyConflict(HttpConflict):
 	def augment_response(self, response):
 		response.delete_cookie('mycookie')
 }}}
+
+=== Problems ===
+
+If you intercept "normal" exceptions rather than letting Django's 500 processing happening, the ``got_request_exception`` signal is fired with the ``CustomRareHttpResponses`` middleware class as sender, rather than the appropriate handler driving the request. This is because there's no way (short of walking the callstack) of figuring out the right one. Unless someone can explain to me why you need to know the handler in your signal processor, it doesn't seem worth fixing.
 
 
 James Aylett <http://tartarus.org/james/computers/django/>
