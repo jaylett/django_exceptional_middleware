@@ -24,9 +24,13 @@ If you don't want to write a different template for each response code, you can 
 
 By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``django_custom_rare_http_responses.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
 
-== HTTP 404 ==
+== HTTP 404 & 500 ==
 
-The middleware catches Django's Http404 and turns it into one of its own, so you can use the same render code and template layout instead of having to write a ``handler404``.
+The middleware catches Django's Http404 and turns it into one of its own (HttpNotFound), so you can use the same render code and template layout instead of having to write a ``handler404``. Similarly, runtime errors are turned into HttpServerError, so you don't have to write ``handler500``.
+
+== DEBUG = True ==
+
+None processing happens in the middleware if settings.DEBUG = True.
 
 == Augment response ==
 
@@ -41,7 +45,3 @@ class MyConflict(HttpConflict):
 
 
 James Aylett <http://tartarus.org/james/computers/django/>
-
-== Things to do ==
-
-Catch runtime exceptions and turn them into 500 done in our style.
