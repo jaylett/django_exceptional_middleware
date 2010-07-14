@@ -4,7 +4,7 @@ from django.core import context_processors, signals
 from django.conf import settings
 from django.core.handlers.wsgi import STATUS_CODE_TEXT
 from django.http import Http404
-from responses import RareHttpResponse, HttpNotFound
+from responses import RareHttpResponse, HttpNotFound, HttpServerError
 import sys
 
 custom_renderer = None
@@ -35,7 +35,7 @@ class ExceptionalMiddleware:
             if isinstance(exception, Http404):
                 exception = HttpNotFound(exception)
             if not isinstance(exception, RareHttpResponse):
-                if isinstance(SystemExit):
+                if isinstance(exception, SystemExit):
                     raise
                 else:
                     # we're emulating Django's 500 processing, but using our render system to make it pretty
@@ -59,7 +59,7 @@ class ExceptionalMiddleware:
                     template = 'http_responses/%s.html' % (template,)
                 else:
                     template = 'http_responses/%i.html' % (exception.http_code, ),
-                return self.renderer(
+                return self.render(
                     request,
                     template,
                     {
