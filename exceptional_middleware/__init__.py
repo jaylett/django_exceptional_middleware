@@ -1,5 +1,5 @@
 from django.shortcuts import _get_queryset
-from responses import Http403
+from responses import *
 
 def get_object_or_403(klass, *args, **kwargs):
     """
@@ -18,4 +18,4 @@ def get_object_or_403(klass, *args, **kwargs):
     try:
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
-        raise Http403()
+        raise HttpForbidden()
