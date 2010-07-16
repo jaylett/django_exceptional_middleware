@@ -22,6 +22,8 @@ If you don't want to write a different template for each response code, you can 
 
 By default, rendering happens using a vanilla invocation of ``render_to_response``. If you want to override this, for instance to add further variables into the render context, you need to call ``exceptional_middleware.middleware.set_renderer`` with a callable that takes three parameters ``request``, ``template_name`` and ``context``. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct ``status_code`` set by the middleware before returning to the user agent.
 
+Alternatively, you can subclass ``ExceptionalMiddleware`` and override the ``render()`` method.
+
 == Other features ==
 
 === HTTP 404 & 500 ===
@@ -29,6 +31,10 @@ By default, rendering happens using a vanilla invocation of ``render_to_response
 The middleware can catch Django's Http404 and turn it into one of its own (HttpNotFound), so you can use the same render code and template layout instead of having to write a ``handler404``. To enable this, set ``EXCEPTIONAL_INVASION=True`` in ``settings.py``.
 
 Similarly, runtime errors will be turned into HttpServerError, so you don't have to write ``handler500``.
+
+Sadly, you'll still have to install a ``handler404`` to catch 404s generated when the URLconf cannot find a matching URL. You may need a ``handler500`` if you get exceptions during that processing (which may happen for memory issues, for instance, so it's wise to install one). You can use ``exceptional_middleware.handler404`` and ``exceptional_middleware.handler500`` (which will instantiate ``ExceptionalMiddleware`` and get it to handle the relevant exception). 
+
+Note that ``EXCEPTIONAL_INVASION`` may be better than using ``handler404`` and ``handler500`` (except in the cases it cannot manage), because your template will get the original exception object.
 
 === DEBUG = True ===
 

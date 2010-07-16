@@ -12,7 +12,7 @@ def set_renderer(renderer):
     global custom_renderer
     custom_renderer = renderer
 
-class ExceptionalMiddleware:
+class ExceptionalMiddleware(object):
     def render(self, request, template_name, context):
         if custom_renderer==None:
             return render_to_response(
@@ -80,3 +80,26 @@ class ExceptionalMiddleware:
                     response[k] = v
             return response
         return None
+
+def handler404(request):
+    """
+    Utility handler for people wanting EXCEPTIONAL_INVASION, since we can't trap the Http404 raised when the
+    URLconf fails to recognise a URL completely. Just drop this in as handler404 in your urls.py. (Note that
+    if you subclass ExceptionalMiddleware to override its render() method, you won't be able to use this.)
+    
+    Don't reference this from here, it's imported into exceptional_middleware directly.
+    """
+    em = ExceptionalMiddleware()
+    return em.process_exception(request, HttpNotFound())
+
+def handler500(request):
+    """
+    Utility handler for people wanting EXCEPTIONAL_INVASION, since we can't trap exceptions raised during Http404
+    processing when the URLconf fails to recognise a URL completely. Just drop this in as handler500in your
+    urls.py. (Note that if you subclass ExceptionalMiddleware to override its render() method, you won't be
+    able to use this.)
+    
+    Don't reference this from here, it's imported into exceptional_middleware directly.
+    """
+    em = ExceptionalMiddleware()
+    return em.process_exception(request, HttpServerError())
