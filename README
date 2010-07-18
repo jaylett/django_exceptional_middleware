@@ -2,7 +2,7 @@
 
 Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than Django supports, and making it easy to style them all the same way.
 
-This was originally written at a <http://devfort.com/>, based on an initial implementation by Richard Boulton, and subsequently developed at other devforts..
+This was originally written at a <http://devfort.com/>, based on an initial implementation by Richard Boulton, and subsequently developed at other devforts; it was previously available as ``django_custom_rare_http_responses``.
 
 == Basic use ==
 
