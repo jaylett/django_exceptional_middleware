@@ -6,9 +6,9 @@ This was originally written at a <http://devfort.com/>, based on an initial impl
 
 == Basic use ==
 
-Add ``exceptional_middleware.middleware.ExceptionalMiddleware`` to ``MIDDLEWARE_CLASSES``, and ``exceptional_middleware`` to ``INSTALLED_APPS``. Make sure you have ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``, and you can then raise the exceptions in ``exceptional_middleware.responses`` to get a (basic) error page.
+Add ``exceptional_middleware.middleware.ExceptionalMiddleware`` to ``MIDDLEWARE_CLASSES``, and ``exceptional_middleware`` to ``INSTALLED_APPS``. Make sure you have ``django.template.loaders.app_directories.Loader`` in your ``TEMPLATE_LOADERS``, and you can then raise the exceptions in ``exceptional_middleware.responses`` to get a (basic) error page.
 
-To override the default template, put (eg) ``http_responses/403.html`` in a ``TEMPLATE_DIRS`` directory (assuming ``django.template.loaders.filesystem.load_template_source`` comes before ``django.template.loaders.app_directories.load_template_source`` in your ``TEMPLATE_LOADERS``).
+To override the default template, put (eg) ``http_responses/403.html`` in a ``TEMPLATE_DIRS`` directory (assuming ``django.template.loaders.filesystem.Loader`` comes before ``django.template.loaders.app_directories.Loader`` in your ``TEMPLATE_LOADERS``).
 
 == Fallback templates and template context variables ==
 
