@@ -27,6 +27,13 @@ class ExceptionalMiddleware(object):
             return custom_renderer(request, template_name, context)
         
     def process_exception(self, request, exception):
+        # first, make sure the exception is handled by sentry, if installed
+        if 'sentry' in settings.INSTALLED_APPS:
+            try:
+                from sentry.client.models import sentry_exception_handler
+                sentry_exception_handler(request=request)
+            except ImportError:
+                pass
         if settings.DEBUG:
             # don't do any smart processing; 404 & 500 will get normal Django processing, everything else becomes a stacktrace
             return None
