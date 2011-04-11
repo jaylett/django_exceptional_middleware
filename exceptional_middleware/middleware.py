@@ -35,8 +35,10 @@ class ExceptionalMiddleware(object):
             except ImportError:
                 pass
         if settings.DEBUG:
-            # don't do any smart processing; 404 & 500 will get normal Django processing, everything else becomes a stacktrace
-            return None
+            # unless 3xx, don't do any smart processing; 404 & 500 will get normal
+            # Django processing, everything else becomes a stacktrace
+            if not isinstance(exception, RareHttpResponse) or exception.http_code // 100 != 3:
+                return None
 
         if hasattr(settings, 'EXCEPTIONAL_INVASION') and settings.EXCEPTIONAL_INVASION==True:
             if isinstance(exception, Http404):
