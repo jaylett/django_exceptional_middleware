@@ -1,8 +1,10 @@
 = Django Exceptional Middleware =
 
-Middleware app that makes it easy to generate the correct HTTP status codes, with customisable templates, for more rare situations than Django supports, and making it easy to style them all the same way.
+Middleware app that makes it easy to generate HTTP status codes as exceptions, with customisable templates, and making it easy to style them all the same way.
 
 This was originally written at a <http://devfort.com/>, based on an initial implementation by Richard Boulton, and subsequently developed at other devforts; it was previously available as ``django_custom_rare_http_responses``, and is now on PyPI as ``django_exceptional_middleware``.
+
+With Django 1.3's Class Based Views, this becomes particularly useful. Future versions of Django are likely to get some kind of support which will replace this approach.
 
 == Basic use ==
 
@@ -38,11 +40,22 @@ Note that ``EXCEPTIONAL_INVASION`` may be better than using ``handler404`` and `
 
 === DEBUG = True ===
 
-No processing happens in the middleware if settings.DEBUG = True.
+Only 3xx (redirect) processing happens in the middleware if settings.DEBUG = True.
 
 === Extra HTTP headers ===
 
 Each exception has a ``headers`` member, which is a dictionary of HTTP header names to values, which will be added into the final HTTP response.
+
+Although there are no provided classes that use this, you can do something like the following:
+
+{{{
+class HttpRedirect(RareHttpResponse):
+    http_code = 302
+    
+    def __init__(self, url, *args, **kwargs):
+        super(HttpRedirect, self).__init__(*args, **kwargs)
+        self.headers['Location'] = url
+}}}
 
 === Augment response ===
 
