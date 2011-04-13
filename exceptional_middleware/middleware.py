@@ -28,7 +28,7 @@ class ExceptionalMiddleware(object):
         
     def process_exception(self, request, exception):
         # first, make sure the exception is handled by sentry, if installed
-        if 'sentry' in settings.INSTALLED_APPS:
+        if 'sentry' in settings.INSTALLED_APPS and not isinstance(exception, RareHttpResponse):
             try:
                 from sentry.client.models import sentry_exception_handler
                 sentry_exception_handler(request=request)

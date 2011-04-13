@@ -42,6 +42,12 @@ Note that `EXCEPTIONAL_INVASION` may be better than using `handler404` and `hand
 
 Only 3xx (redirect) processing happens in the middleware if settings.DEBUG = True.
 
+### Sentry integration
+
+If we catch someone else's exception, we always propagate it out to Sentry, if it's installed. However we don't do this for our own exceptions (since that's just confusing).
+
+If you also install the Sentry404CatchMiddleware it probably won't work that well.
+
 ### Extra HTTP headers
 
 Each exception has a `headers` member, which is a dictionary of HTTP header names to values, which will be added into the final HTTP response.
