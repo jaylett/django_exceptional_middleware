@@ -44,9 +44,9 @@ Only 3xx (redirect) processing happens in the middleware if settings.DEBUG = Tru
 
 ### Sentry integration
 
-If we catch someone else's exception, we always propagate it out to Sentry, if it's installed. However we don't do this for our own exceptions (since that's just confusing).
+Our exceptions are /not/ marked for Sentry to ignore, since that would mean that people are raising our exceptions without having loaded our middleware, which you'd want to know about promptly.
 
-If you also install the Sentry404CatchMiddleware it probably won't work that well.
+If we catch someone else's exception, we always propagate it out to Sentry, if it's installed; we don't do this for our own exceptions except for 5xx (since they aren't really errors), or the Django 1.3 Http404 exception (similarly).
 
 ### Extra HTTP headers
 

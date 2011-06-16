@@ -4,6 +4,7 @@ from django.core import context_processors, signals
 from django.conf import settings
 from django.core.handlers.wsgi import STATUS_CODE_TEXT
 from django.http import Http404
+from django.core.urlresolvers import Resolver404
 from responses import RareHttpResponse, HttpNotFound, HttpServerError
 import sys
 
@@ -28,12 +29,24 @@ class ExceptionalMiddleware(object):
         
     def process_exception(self, request, exception):
         # first, make sure the exception is handled by sentry, if installed
-        if 'sentry' in settings.INSTALLED_APPS and not isinstance(exception, RareHttpResponse):
-            try:
-                from sentry.client.models import sentry_exception_handler
-                sentry_exception_handler(request=request)
-            except ImportError:
+        # we don't pass through our exceptions unless http_code >= 500, or
+        # the Django 1.3 Http404 exception, since these are raised in normal
+        # circumstances and so aren't useful to Sentry.
+        #
+        # (Sentry should pick up the 404s using the Sentry 404 middleware,
+        # which it separates out from exceptions. Ideally, Sentry would
+        # track other 4xx responses similarly.)
+        if 'sentry' in settings.INSTALLED_APPS:
+            if isinstance(exception, RareHttpResponse) and exception.http_code < 500:
                 pass
+            elif isinstance(exception, Http404) or isinstance(exception, Resolver404):
+                pass
+            else:
+                try:
+                    from sentry.client.models import sentry_exception_handler
+                    sentry_exception_handler(request=request)
+                except ImportError:
+                    pass
         if settings.DEBUG:
             # unless 3xx, don't do any smart processing; 404 & 500 will get normal
             # Django processing, everything else becomes a stacktrace
@@ -41,7 +54,7 @@ class ExceptionalMiddleware(object):
                 return None
 
         if hasattr(settings, 'EXCEPTIONAL_INVASION') and settings.EXCEPTIONAL_INVASION==True:
-            if isinstance(exception, Http404):
+            if isinstance(exception, Http404) or isinstance(exception, Resolver404):
                 exception = HttpNotFound(exception)
             if not isinstance(exception, RareHttpResponse):
                 if isinstance(exception, SystemExit):
