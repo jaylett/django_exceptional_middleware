@@ -1,6 +1,6 @@
 from django.shortcuts import _get_queryset
 from responses import *
-from middleware import handler404, handler500
+from middleware import handler403, handler404, handler500
 
 def get_object_or_403(klass, *args, **kwargs):
     """
