@@ -22,21 +22,21 @@ If you don't want to write a different template for each response code, you can 
 
 ## Overriding render mechanism
 
-By default, rendering happens using a vanilla invocation of `render_to_response`. If you want to override this, for instance to add further variables into the render context, you need to call `exceptional_middleware.middleware.set_renderer` with a callable that takes three parameters `request`, `template_name` and `context`. These will be as expected for this kind of work; the renderer should return an HttpResponse instance, which will then have the correct `status_code` set by the middleware before returning to the user agent.
+By default, rendering happens using a vanilla invocation of `render_to_response`. If you want to override this, for instance to add further variables into the render context, you need to call `exceptional_middleware.middleware.set_renderer` with a callable that takes three parameters `request`, `template_name` and `context`. These will be as expected for this kind of work; the renderer should return an `HttpResponse` instance, which will then have the correct `status_code` set by the middleware before returning to the user agent.
 
 Alternatively, you can subclass `ExceptionalMiddleware` and override the `render()` method.
 
 ## Other features
 
-### HTTP 404 & 500
+### HTTP 403, 404 & 500
 
 The middleware can catch Django's Http404 and turn it into one of its own (HttpNotFound), so you can use the same render code and template layout instead of having to write a `handler404`. To enable this, set `EXCEPTIONAL_INVASION=True` in `settings.py`.
 
-Similarly, runtime errors will be turned into HttpServerError, so you don't have to write `handler500`.
+Similarly, runtime errors will be turned into HttpServerError, so you don't have to write `handler500`, and `PermissionDenied` becomes `HttpForbidden`.
 
-Sadly, you'll still have to install a `handler404` to catch 404s generated when the URLconf cannot find a matching URL. You may need a `handler500` if you get exceptions during that processing (which may happen for memory issues, for instance, so it's wise to install one). You can use `exceptional_middleware.handler404` and `exceptional_middleware.handler500` (which will instantiate `ExceptionalMiddleware` and get it to handle the relevant exception). 
+Sadly, you'll still have to install a `handler404` to catch 404s generated when the URLconf cannot find a matching URL. You may need a `handler500` if you get exceptions during that processing (which may happen for memory issues, for instance, so it's wise to install one). You can use `exceptional_middleware.handler404` and `exceptional_middleware.handler500` (which will instantiate `ExceptionalMiddleware` and get it to handle the relevant exception).There's also `exceptional_middleware.handler403` for Django versions from 1.4 that have PermissionDenied() as an exception.
 
-Note that `EXCEPTIONAL_INVASION` may be better than using `handler404` and `handler500` (except in the cases it cannot manage), because your template will get the original exception object.
+Note that `EXCEPTIONAL_INVASION` may be better than using handlers (except in the cases it cannot manage), because your template will get the original exception object. In practice you're either going to need both, or all three handlers.
 
 ### DEBUG = True
 
@@ -67,12 +67,15 @@ Sometimes you may want to do something else to the response at the end of the cy
 
     from exceptional_middleware.responses import HttpConflict
     class MyConflict(HttpConflict):
+
         def augment_response(self, response):
             response.delete_cookie('mycookie')
 
+      def augment_response(self, response):
+        response.delete_cookie('mycookie')
+
 ### Problems
 
-If you intercept "normal" exceptions rather than letting Django's 500 processing happening, the `got_request_exception` signal is fired with the `CustomRareHttpResponses` middleware class as sender, rather than the appropriate handler driving the request. This is because there's no way (short of walking the callstack) of figuring out the right one. Unless someone can explain to me why you need to know the handler in your signal processor, it doesn't seem worth fixing.
-
+If you intercept "normal" exceptions rather than letting Django's 500 processing happening, the `got_request_exception` signal is fired with the `ExceptionalMiddleware` middleware class as sender, rather than the appropriate handler driving the request. This is because there's no way (short of walking the callstack) of figuring out the right one. Unless someone can explain to me why you need to know the handler in your signal processor, it doesn't seem worth fixing.
 
 [James Aylett](http://tartarus.org/james/computers/django/)

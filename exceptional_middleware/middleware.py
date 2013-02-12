@@ -3,15 +3,18 @@ from django.template import RequestContext, TemplateDoesNotExist
 from django.core import context_processors, signals
 from django.conf import settings
 from django.core.handlers.wsgi import STATUS_CODE_TEXT
+from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.core.urlresolvers import Resolver404
-from responses import RareHttpResponse, HttpNotFound, HttpServerError
+from responses import RareHttpResponse, HttpNotFound, HttpForbidden, HttpServerError
 import sys
+
 
 custom_renderer = None
 def set_renderer(renderer):
     global custom_renderer
     custom_renderer = renderer
+
 
 class ExceptionalMiddleware(object):
     def render(self, request, template_name, context):
@@ -56,6 +59,8 @@ class ExceptionalMiddleware(object):
         if hasattr(settings, 'EXCEPTIONAL_INVASION') and settings.EXCEPTIONAL_INVASION==True:
             if isinstance(exception, Http404) or isinstance(exception, Resolver404):
                 exception = HttpNotFound(exception)
+            if isinstance(exception, PermissionDenied):
+                exception = HttpForbidden(exception)
             if not isinstance(exception, RareHttpResponse):
                 if isinstance(exception, SystemExit):
                     raise
@@ -103,6 +108,21 @@ class ExceptionalMiddleware(object):
             return response
         return None
 
+
+def handler403(request):
+    """
+    Utility handler for people wanting consistent handling for all exceptional HTTP responses,
+    but don't want to use EXCEPTIONAL_INVASION. Just drop this in as handler403 in your urls.py.
+    (Note that if you subclass ExceptionalMiddleware to override its render() method, you won't
+    be able to use this.)
+    
+    Don't reference this from here, it's imported into exceptional_middleware directly.
+    """
+    
+    em = ExceptionalMiddleware()
+    return em.process_exception(request, HttpForbidden())
+
+
 def handler404(request):
     """
     Utility handler for people wanting EXCEPTIONAL_INVASION, since we can't trap the Http404 raised when the
@@ -111,17 +131,20 @@ def handler404(request):
     
     Don't reference this from here, it's imported into exceptional_middleware directly.
     """
+    
     em = ExceptionalMiddleware()
     return em.process_exception(request, HttpNotFound())
 
+
 def handler500(request):
+
     """
-    Utility handler for people wanting EXCEPTIONAL_INVASION, since we can't trap exceptions raised during Http404
-    processing when the URLconf fails to recognise a URL completely. Just drop this in as handler500in your
-    urls.py. (Note that if you subclass ExceptionalMiddleware to override its render() method, you won't be
-    able to use this.)
+    Utility handler for people wanting EXCEPTIONAL_INVASION, since we can't trap exceptions themselves raised
+    during exception handling. Just drop this in as handler500 in your urls.py. (Note that if you subclass
+    ExceptionalMiddleware to override its render() method, you won't be able to use this.)
     
     Don't reference this from here, it's imported into exceptional_middleware directly.
     """
+
     em = ExceptionalMiddleware()
     return em.process_exception(request, HttpServerError())
