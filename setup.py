@@ -5,7 +5,7 @@ except ImportError:
     from distutils.core import setup
 
 PACKAGE = 'django_exceptional_middleware'
-VERSION = '1.1'
+VERSION = '1.2'
 
 package_data = {
         'exceptional_middleware': [ 'templates/http_responses/*.html' ],

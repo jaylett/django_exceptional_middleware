@@ -74,6 +74,19 @@ Sometimes you may want to do something else to the response at the end of the cy
       def augment_response(self, response):
         response.delete_cookie('mycookie')
 
+### Testing
+
+If you include `exceptional_middleware.urls` into your urlconf, you get pre-made targets that will generate all
+the standard exceptions, which makes it semi-easy to test your custom templates.
+
+    urlpatterns += patterns('',
+        url(r'^http/', include('exceptional_middleware.urls')),
+    )
+
+Then you have to run with `DEBUG=False` because otherwise only 3xx codes will get exceptional handling (ie: you'll see the "technical" responses, with stacktraces and so on, which isn't what you really want).
+
+Note that if you use `django.contrib.staticfiles` then you also need to use `runserver` with `--insecure` or you won't get any of your static assets. (If you use media files, you need to either use `django.contrib.staticfiles.views.serve` directly, which has an insecure mode, or give up on having media files appear during testing. `django.conf.urls.static.static`, the helper function for generating static-serving URLs, only works in debug mode.)
+
 ### Problems
 
 If you intercept "normal" exceptions rather than letting Django's 500 processing happening, the `got_request_exception` signal is fired with the `ExceptionalMiddleware` middleware class as sender, rather than the appropriate handler driving the request. This is because there's no way (short of walking the callstack) of figuring out the right one. Unless someone can explain to me why you need to know the handler in your signal processor, it doesn't seem worth fixing.
