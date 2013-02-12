@@ -9,6 +9,18 @@ class RareHttpResponse(Exception):
     def augment_response(self, response):
         pass
 
+# Just one for all redirects, since you're generally only going to use
+# 301, 302 and 307 regularly. 302 is the default because I'm still hearing
+# reports that 307 has interaction problems with some things (little things
+# like caching proxies, Google &c).
+class HttpRedirect(RareHttpResponse):
+    
+    def __init__(self, code=302, permanent=False, **headers):
+        if permanent:
+            code = 301
+        self.http_code = code
+        self.headers = headers
+
 # We don't provide exceptions for every 400 and 500:
 #
 # 401 Unauthorized
